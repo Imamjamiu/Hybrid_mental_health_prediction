@@ -329,12 +329,16 @@ Mental health predictions can be sensitive and uncertain. Any future real-world 
 
 ---
 
-## 👤 Author
+## 👥 Contributors
 
-**imam Jamiu**
+This project was initially developed collaboratively by:
 
-Computer Science Graduate  
-University of Ilorin, Nigeria
+- **imam Jamiu**
+- **Robiu Olalere**
+
+Both contributors are acknowledged for their work on the development of the Hybrid Mental Health Prediction System.
+
+**Institution:** University of Ilorin, Nigeria
 
 GitHub: [Imamjamiu](https://github.com/Imamjamiu)
 
