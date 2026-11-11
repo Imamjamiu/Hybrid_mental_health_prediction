@@ -1,10 +1,42 @@
-# Ignore the raw data files
-data/raw/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
 venv/
+.venv/
+env/
+
+# IDE and editor settings
+.idea/
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Local datasets and generated data
+data/raw/
+data/processed/
+data/splits/
+
+# Model checkpoints
+*.pth
+models/final_unified_model/
+
+# Operating system files
 .DS_Store
 Thumbs.db
-__pycache__/
-*.pyc
-data/processed/
-*.pth
-models/*.pth
+
+# Logs and temporary files
+*.log
+
+# Local backups and debugging files
+github_notebook_backup.ipynb
+local_notebook_backup.ipynb
+inspect_notebook.py
+src/practice.py
+src/resources_backup_before_emergency_update.csv
