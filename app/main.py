@@ -1,32 +1,41 @@
+
 import streamlit as st
 import sys
 import os
 import time
 
-# Path setup
-current_folder = os.path.dirname (os.path.abspath (__file__))
-project_root = os.path.dirname (current_folder)
-src_path = os.path.join (project_root,'src')
-
-if src_path not in sys.path:
-    sys.path.append(src_path)
-
-try:
-    from classifier import MentalHealthClassifier
-    from recommender import MentalHealthRecommender
-except ImportError as e:
-    st.error (f" Critical Error: Could not import scripts from {src_path}.\nDetail: {e}")
-    st.stop ()
-
-# configuration
-MODEL_PATH = r"C:\Users\NUGGET\mental_health_prediction\models\final_unified_model"
-
+# Configure Streamlit first
 st.set_page_config(
     page_title="Hybrid Mental Health Prediction System",
     layout="wide",
     page_icon="🧠",
     initial_sidebar_state="expanded"
 )
+
+# Path setup
+current_folder = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_folder)
+src_path = os.path.join(project_root, "src")
+
+if src_path not in sys.path:
+    sys.path.append(src_path)
+
+# Import project modules
+try:
+    from classifier import MentalHealthClassifier
+    from recommender import MentalHealthRecommender
+
+except ImportError as e:
+    st.error(
+        f"Critical Error: Could not import scripts from {src_path}.\n"
+        f"Detail: {e}"
+    )
+    st.stop()
+
+# configuration
+MODEL_PATH = os.path.join(project_root, "models", "final_unified_model")
+
+
 
 # CSS styling
 st.markdown ("""
@@ -88,14 +97,19 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("2. Risk Factors")
     anxiety_status = st.radio ("Do you currently feel anxious?",["No","Yes"],horizontal=True)
-    self_harm_check = st.radio ("Thoughts of self-harm?",["No","Yes"],horizontal=True)
+
+    self_harm_check = st.radio(
+        "Have you recently had thoughts of hurting yourself?",
+        ["No", "Yes"],
+        horizontal=True
+    )
 
     st.info("ℹ️ Data is processed locally.")
 
 # Main content area
 st.markdown("""
     <div style="margin-bottom: 15px; font-size: 10px; color: #555; display: flex; align-items: center;">
-        <span style="font-size: 11px; margin-right: 1px;">↖️</span> 
+        <span style="font-size: 11px; margin-right: 1px;">↖️</span>
         <span>Set your <b>Behavioral Metrics</b> first.</span>
     </div>
     """, unsafe_allow_html=True)
@@ -128,33 +142,11 @@ if analyze_btn:
             time.sleep(1)
             prediction, risk_score = doctor.predict(journal_text)
 
-        # Hybrid logic layer (Make Inputs Matter!)
+        # Keep the model prediction and probability unchanged.
         logic_notes = []
 
-        # If Sleep is low (< 5 hours), increase risk by 10%
-        if sleep < 5:
-            risk_score += 0.10
-            logic_notes.append ("Sleep Deprivation (+10%)")
-
-        # If Anxiety is Yes, increase risk by 5%
-        if anxiety_status == "Yes":
-            risk_score += 0.05
-            logic_notes.append ("Self-Reported Anxiety (+5%)")
-
-        # Cap the score at 1.0 (100%)
-        if risk_score > 1.0: risk_score = 0.99
-
-        # If logic pushed score > 60% but AI said "Normal", force update the name.
-        safe_labels = ["Normal","Healthy","Low Risk","Stable"]
-        if risk_score > 0.6 and prediction in safe_labels:
-            prediction = "Mental Health Concern"
-
-        # Safety Override (Self-Harm)
-        override_triggered = False
-        if self_harm_check == "Yes":
-            risk_score = 0.95
-            prediction = "Suicidal"
-            override_triggered = True
+        # Safety response for self-harm disclosure
+        override_triggered = self_harm_check == "Yes"
 
         # result display
         tab1,tab2,tab3 = st.tabs(["📊 Analysis Report","💊 Recommended Resources","⚙️ Debug Info"])
@@ -162,17 +154,24 @@ if analyze_btn:
         with tab1:
             st.markdown ("### Diagnosis Summary")
 
-            # Risk Banner
-            if risk_score > 0.9:
-                st.markdown(
-                    '<div class="risk-box high-risk">🚨 CRITICAL RISK DETECTED<br>Immediate intervention recommended.</div>',
-                    unsafe_allow_html=True)
-            elif risk_score > 0.6:
-                st.markdown ('<div class="risk-box med-risk">🔶 ELEVATED CONCERN<br>Proactive support suggested.</div>',
-                             unsafe_allow_html=True)
-            else:
-                st.markdown ('<div class="risk-box low-risk">✅ STABLE STATUS<br>Maintain healthy habits.</div>',
-                             unsafe_allow_html=True)
+            # Safety notice for self-harm disclosure
+            if override_triggered:
+                st.error(
+                    "Thank you for sharing this. You deserve support, and you do not "
+                    "have to handle this alone. If you feel you may act on these "
+                    "thoughts or cannot keep yourself safe, please go to the nearest "
+                    "hospital emergency department or contact local emergency services. "
+                    "If possible, reach out to someone you trust and ask them to stay "
+                    "with you."
+                )
+
+            # Model Output
+            st.markdown("### Model Output")
+
+            st.info(
+                "This is an experimental AI model prediction. "
+                "Its score is not a clinical risk assessment or diagnosis."
+            )
 
             col1,col2,col3 = st.columns ([1.3,1,1])
 
@@ -182,39 +181,46 @@ if analyze_btn:
                 # This HTML allows the text to wrap to a second line if needed
                 st.markdown (f'<h3 style="margin-top: 0;">{prediction}</h3>',unsafe_allow_html=True)
 
-            col2.metric("Calculated Risk Score",f"{risk_score:.1%}")
+            col2.metric("Class 1 Model Score", f"{risk_score:.1%}")
             col3.metric("Sleep Balance",f"{sleep} hrs",delta=f"{sleep - 8} hrs" if sleep < 8 else "Good")
 
+            st.caption("Class 1 model score (experimental, not clinically calibrated)")
             st.progress(risk_score)
 
             # Show logic notes if inputs changed the score
             if logic_notes:
                 st.info (f"ℹ️ **Score Adjustment:** Risk increased due to: {', '.join (logic_notes)}")
 
-            if override_triggered:
-                st.warning ("⚠️ **Note:** Risk score maxed out due to self-harm flag.")
-
         with tab2:
             st.markdown ("### 📚 Curated Interventions")
-            recs = librarian.get_recommendations(journal_text,risk_score)
+            recs = librarian.get_recommendations(
+                journal_text,
+                self_harm_disclosed=override_triggered
+            )
 
-            if not recs:
-                st.info ("No specific resources found for this context.")
+            if override_triggered:
+                st.warning(
+                    "No verified local crisis contacts are configured in this app yet. "
+                    "If you may act on these thoughts or cannot stay safe, please go "
+                    "to the nearest hospital emergency department. Reach out to someone "
+                    "you trust and ask them to stay with you."
+                )
+            elif not recs:
+                st.info("No specific resources found for this context.")
             else:
                 for r in recs:
                     color = "red" if r['Type'] == 'Hotline' else "blue"
                     icon = "☎️" if r['Type'] == 'Hotline' else "📖"
                     with st.expander (f"{icon} {r['Description']}"):
                         st.markdown (f"**Type:** :{color}[{r['Type']}]")
-                        st.markdown (f"**Risk Level:** {r['Risk_Level_Allowed']}")
                         st.link_button (f"🔗 Open {r['Type']}",r['Link'])
 
         with tab3:
             st.json ({
                 "model": "RoBERTa-FineTuned",
-                "final_score": risk_score,
+                "class_1_model_score": risk_score,
                 "logic_adjustments": logic_notes,
-                "override": override_triggered
+                "self_harm_disclosed": override_triggered
             })
 
 # footer
@@ -222,8 +228,8 @@ st.markdown("---")
 st.markdown(
     """
     <div style='text-align: center; color: grey; font-size: 0.8em;'>
-        ⚠️ <b>DISCLAIMER:</b> This is an AI-powered prototype for educational purposes only. 
-        It is NOT a substitute for professional medical advice, diagnosis, or treatment. 
+        ⚠️ <b>DISCLAIMER:</b> This is an AI-powered prototype for educational purposes only.
+        It is NOT a substitute for professional medical advice, diagnosis, or treatment.
         If you are in crisis, please call emergency services immediately.
     </div>
     """,
