@@ -5,24 +5,25 @@
 ![Status](https://img.shields.io/badge/Status-Research%20Project-blue)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Framework](https://img.shields.io/badge/Framework-PyTorch-orange)
-![Model](https://img.shields.io/badge/Language%20Model-MentalRoBERTa-green)
+![Models](https://img.shields.io/badge/Language%20Models-RoBERTa%20%7C%20MentalRoBERTa-green)
 
 ---
 
 ## 📖 Overview
 
-The **Hybrid Mental Health Prediction System** is an experimental machine learning project that investigates how structured student information and unstructured mental-health-related text can be combined for depression-related classification.
+The **Hybrid Mental Health Prediction System** is an experimental machine learning project that investigates approaches to depression-related classification using structured student information and unstructured mental-health-related text.
 
-The research explores a **dual-tower neural network architecture** in which two separate models process different input modalities:
+The research explores multiple architectures and model configurations:
 
-- **Text tower:** Uses MentalRoBERTa to extract contextual representations from free-text descriptions.
-- **Structured-data tower:** Uses a multilayer perceptron (MLP) to process numerical and categorical student information.
+- **Notebook 05 – Dual-Tower Architecture:** Uses `roberta-base` to extract contextual representations from Reddit mental-health text and a multilayer perceptron (MLP) to process structured student information. The two representations are concatenated before classification.
+- **Notebook 06 – Unified Architecture:** Uses `mental/mental-roberta-base`, fine-tuned for binary sequence classification on a combined dataset containing student and Reddit records.
+- **Streamlit Application:** Uses a separate fine-tuned RoBERTa-based text classification model for journal-text analysis.
 
-The representations from both towers are concatenated and passed through a classification network to produce a binary prediction.
+These are separate experimental implementations within the same project. They explore different approaches to text representation, structured-data processing, and mental-health-related classification.
 
-The project has also been extended with a Streamlit application that integrates a RoBERTa-based text classification model, a support resource recommendation module, and an independent crisis-support mechanism.
+The project has also been extended with a Streamlit application that integrates a text classification model, a support resource recommendation module, and an independent crisis-support mechanism.
 
-The long-term objective is to investigate how multimodal learning can support mental-health-related screening research while providing access to relevant educational and support resources.
+The long-term objective is to investigate how machine learning and natural language processing can support mental-health-related screening research while providing access to relevant educational and support resources.
 
 **Important:** The experimental multimodal dataset uses synthetically paired records from separate student and Reddit datasets. These pairs do not represent genuine individuals whose structured information and text were collected together. Consequently, the reported results should not be interpreted as evidence of real-world predictive performance or clinical validity.
 
@@ -30,8 +31,9 @@ The long-term objective is to investigate how multimodal learning can support me
 
 ## 🎯 Project Objectives
 
-- Develop a multimodal learning pipeline combining structured data and natural language.
-- Explore MentalRoBERTa for contextual text representation.
+- Develop machine learning pipelines for mental-health-related classification.
+- Explore RoBERTa-based models for contextual text representation.
+- Investigate MentalRoBERTa for mental-health-related text classification.
 - Build a neural network for structured student information.
 - Implement a dual-tower architecture with feature-level fusion.
 - Investigate unified architectures for combining independently collected datasets.
@@ -46,7 +48,7 @@ The long-term objective is to investigate how multimodal learning can support me
 
 ## 🏗️ System Architecture
 
-The research project uses a **Dual-Tower Architecture with Late Feature Fusion**.
+The Notebook 05 research experiment uses a **Dual-Tower Architecture with Late Feature Fusion**.
 
 Each modality is processed independently before the extracted representations are combined.
 
@@ -57,12 +59,13 @@ Each modality is processed independently before the extracted representations ar
           |               |
           v               v
      TEXT INPUT       STRUCTURED INPUT
+     (Reddit Text)    (Student Data)
           |               |
           v               v
      Tokenization     Imputation &
           |          Standardization
           v          One-Hot Encoding
-     MentalRoBERTa          |
+      roberta-base          |
       Text Tower            v
           |             MLP Network
           |          Structured Tower
@@ -92,15 +95,16 @@ Each modality is processed independently before the extracted representations ar
 
 ### Architecture Components
 
-**1. Text Tower**
+**1. Text Tower – Notebook 05**
 
-- Pretrained model: `mental/mental-roberta-base`
-- Extracts contextual text representations.
+- Pretrained model used in the recorded experiment: `roberta-base`
+- Extracts contextual representations from Reddit mental-health text.
 - Uses the first-token representation from the final hidden state.
+- The notebook attempts to load `mental/mental-roberta-base` but falls back to the publicly accessible `roberta-base` when the gated model cannot be loaded.
 
 **2. Structured-Data Tower**
 
-- Processes numerical and categorical features.
+- Processes numerical and categorical student features.
 - Uses imputation and preprocessing.
 - Neural network layers: 64 and 32 units.
 - ReLU activation and dropout.
@@ -116,21 +120,32 @@ Each modality is processed independently before the extracted representations ar
 - ReLU activation and dropout.
 - Produces two output classes.
 
+### Unified Architecture – Notebook 06
+
+Notebook 06 investigates a separate text classification approach using `mental/mental-roberta-base`.
+
+Unlike Notebook 05, this experiment uses a unified dataset containing student and Reddit text records. The model is fine-tuned for binary sequence classification and evaluated on the combined test set as well as separately on each dataset source.
+
+For the student records, text descriptions are programmatically generated from structured student attributes. They are not independently collected student journal entries.
+
 ### Application Architecture
 
-The Streamlit application is an additional component of the project. It currently uses a fine-tuned RoBERTa-based sequence classification model for journal-text analysis.
+The Streamlit application is an additional component of the project. It uses a separate fine-tuned RoBERTa-based sequence classification model for journal-text analysis.
+
+The classifier prediction is based on the journal text. Other wellness inputs, including sleep hours and additional contextual information, support displayed wellness assessments and recommendations; they are not classifier features.
 
 The application also integrates a support resource recommender and a separate crisis-support retrieval mechanism.
 
-The deployed text classifier should not be confused with the experimental dual-tower model developed in the research notebooks.
+The deployed text classifier should not be confused with either the experimental dual-tower model or the unified architecture developed in the research notebooks.
 
 ---
 
 ## ✨ Key Features
 
 - **Multimodal Learning:** Explores the combination of structured and unstructured information.
-- **Contextual Text Representation:** Uses MentalRoBERTa to extract contextual language features.
-- **Structured Feature Processing:** Uses a dedicated neural network for student information.
+- **RoBERTa-Based Text Representation:** Uses RoBERTa-based models across different research experiments and the application.
+- **MentalRoBERTa Experimentation:** Investigates MentalRoBERTa for mental-health-related text classification.
+- **Structured Feature Processing:** Uses a dedicated neural network for student information in the dual-tower experiment.
 - **Feature-Level Fusion:** Combines representations from both modalities before classification.
 - **Unified Architecture Experiments:** Investigates combining independently collected student and Reddit datasets.
 - **Text Classification Application:** Provides journal-text classification through a Streamlit interface.
@@ -182,7 +197,7 @@ Hybrid_mental_health_prediction/
 | `03_eda_visualization.ipynb` | Exploratory data analysis and visualizations |
 | `04_model_training.ipynb` | Baseline model training experiments |
 | `05_Dual_tower_model.ipynb` | Dual-tower architecture, training, evaluation, and model persistence |
-| `06_Unified_architecture.ipynb` | Unified dataset preparation, architecture experiments, training, and source-specific evaluation |
+| `06_Unified_architecture.ipynb` | Unified dataset preparation, MentalRoBERTa-based classification, training, and source-specific evaluation |
 
 ---
 
@@ -217,9 +232,11 @@ Contains text records related to mental health, emotional experiences, and psych
 
 The two datasets were not originally collected from the same individuals.
 
-For the multimodal experiments, records were synthetically paired by matching their existing binary labels. Student records were sampled with replacement to construct pairs with Reddit text records.
+For the Notebook 05 multimodal experiment, records were synthetically paired by matching their existing binary labels. Student records were sampled with replacement to construct pairs with Reddit text records. The text tower processes Reddit text, while the structured-data tower processes the corresponding sampled student features.
 
-The datasets are processed separately before being combined for the experimental architecture.
+For Notebook 06, the two datasets are combined into a unified text classification dataset. The student records use programmatically generated text descriptions derived from their structured attributes, while the Reddit records contain user-generated text.
+
+The generated student descriptions provide a text representation of structured attributes; they should not be interpreted as independently collected student narratives or journal entries.
 
 The unified architecture experiment uses source-aware stratification to distribute records across training, validation, and testing subsets while preserving the dataset source and binary label proportions.
 
@@ -236,6 +253,7 @@ The latest Notebook 06 experiment reports the following dataset distribution:
 
 - Label-based synthetic pairing does not establish a genuine relationship between a student's structured information and a particular Reddit post.
 - Student records sampled with replacement may introduce repeated structured observations.
+- Programmatically generated student descriptions are not equivalent to genuine student-written mental health text.
 - The positive-class definitions differ between the datasets.
 - Source-specific differences may influence the model's predictions.
 
@@ -260,13 +278,13 @@ The repository includes baseline experiments involving:
 
 These models provide traditional machine learning reference points for the broader research.
 
-### 2. Dual-Tower Model
+### 2. Dual-Tower Model – Notebook 05
 
-The dual-tower experiment uses the following configuration:
+The recorded dual-tower experiment uses the following configuration:
 
 | Component | Configuration |
 |---|---|
-| Text model | MentalRoBERTa |
+| Text model | `roberta-base` |
 | Structured tower | Multilayer Perceptron |
 | Fusion method | Feature concatenation |
 | Maximum text length | 128 tokens |
@@ -278,9 +296,11 @@ The dual-tower experiment uses the following configuration:
 | Data split | 80% training / 20% testing |
 | Device | CUDA (when available) |
 
+**Model loading note:** The notebook attempts to load `mental/mental-roberta-base`. In the recorded experiment, the gated model could not be loaded because no access token was provided, so the notebook successfully used the public `roberta-base` checkpoint instead.
+
 ### 3. Dual-Tower Experimental Results
 
-The earlier Notebook 05 experiment produced the following results:
+The Notebook 05 experiment produced the following results:
 
 | Metric | Result |
 |---|---:|
@@ -298,9 +318,11 @@ The earlier Notebook 05 experiment produced the following results:
 
 These results describe performance on the constructed synthetic test pairs and should not be interpreted as evidence of clinical effectiveness or generalization to genuine multimodal observations.
 
-### 4. Unified Architecture Experimental Results
+### 4. Unified Architecture Experimental Results – Notebook 06
 
-Notebook 06 investigates a further unified architecture using the combined dataset.
+Notebook 06 investigates a separate unified text classification architecture using `mental/mental-roberta-base`.
+
+The model is fine-tuned for binary sequence classification using the combined student and Reddit dataset.
 
 The latest saved evaluation outputs report:
 
@@ -314,7 +336,7 @@ The source-specific results are reported separately to examine differences in pe
 
 The substantial difference between student and Reddit performance highlights the importance of dataset characteristics, label definitions, and source-specific generalization.
 
-**Interpretation:** These results are experimental and are affected by synthetic pairing, differences in target definitions, and potential dataset-specific patterns. They should not be interpreted as evidence of clinical validity or real-world diagnostic performance.
+**Interpretation:** These results are experimental and are affected by differences in text characteristics, synthetic student text generation, target definitions, and potential dataset-specific patterns. They should not be interpreted as evidence of clinical validity or real-world diagnostic performance.
 
 ---
 
@@ -326,13 +348,15 @@ The project uses different model artifacts for its research experiments and appl
 
 | Artifact | Description |
 |---|---|
-| `hybrid_model.pth` | Trained dual-tower model weights |
+| `hybrid_model.pth` | Trained dual-tower model weights from Notebook 05 |
 | `structured_preprocessor.pkl` | Fitted structured-data preprocessing pipeline |
-| Tokenizer directory | MentalRoBERTa tokenizer files |
+| Tokenizer directory | Tokenizer files corresponding to the model used in the recorded Notebook 05 experiment (`roberta-base`) |
 | `model_config.pkl` | Model and preprocessing configuration |
 | `confusion_matrix.png` | Experimental confusion matrix visualization |
 
 The dual-tower experiment saves its artifacts to Google Drive during execution. They are not necessarily included in the public repository.
+
+Notebook 06 uses a separate MentalRoBERTa-based sequence classification model and its corresponding tokenizer and model artifacts.
 
 ### Application Model Artifacts
 
@@ -340,7 +364,7 @@ The Streamlit application uses a fine-tuned RoBERTa-based sequence classificatio
 
 `models/final_unified_model/`
 
-This checkpoint is separate from the experimental dual-tower model.
+This checkpoint is separate from the experimental dual-tower model and the Notebook 06 unified architecture experiment.
 
 Large model checkpoints may need to be obtained or generated separately rather than downloaded directly from the repository.
 
@@ -359,13 +383,16 @@ The research experiments were developed using Google Colab and PyCharm.
 5. Ensure the required datasets are available at the paths expected by the notebook.
 6. Execute the notebook cells in order.
 
+The recorded experiment uses `roberta-base` because the attempted gated MentalRoBERTa checkpoint could not be loaded without an access token.
+
 ### Unified Architecture Experiment
 
 1. Open `notebooks/06_Unified_architecture.ipynb`.
 2. Ensure the required datasets are available.
 3. Verify the configured dataset paths.
-4. Execute the notebook cells in order.
-5. Review the training, validation, and source-specific evaluation outputs.
+4. Ensure access to the configured MentalRoBERTa checkpoint.
+5. Execute the notebook cells in order.
+6. Review the training, validation, and source-specific evaluation outputs.
 
 The notebooks install or import the required dependencies and perform data preparation, model initialization, training, evaluation, and artifact saving.
 
@@ -465,7 +492,7 @@ The system is designed to make relevant crisis-support information accessible wh
 | Programming Language | Python |
 | Deep Learning | PyTorch |
 | NLP | Hugging Face Transformers |
-| Pretrained Model | MentalRoBERTa, RoBERTa |
+| Pretrained Models | RoBERTa, MentalRoBERTa |
 | Data Processing | Pandas, NumPy |
 | Machine Learning | Scikit-learn, XGBoost |
 | Similarity Search | Cosine Similarity |
