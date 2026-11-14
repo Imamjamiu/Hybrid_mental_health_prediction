@@ -131,13 +131,48 @@ col_spacer1, col_btn, col_spacer2 = st.columns([1, 2, 1])
 with col_btn:
     analyze_btn = st.button("🔍 Analyze Mental Health", type="primary", use_container_width=True)
 
+# Independent crisis-support display
+if self_harm_check == "Yes":
+    st.error(
+        "You deserve support. If you feel you may act on "
+        "thoughts of hurting yourself or cannot keep yourself safe, "
+        "please go to the nearest hospital emergency department "
+        "or contact emergency services (112). "
+        "If possible, ask someone you trust to stay with you."
+    )
+
+    st.subheader("Crisis and Mental-Health Support")
+
+    st.info(
+        "These contacts are provided as additional support. "
+        "Availability and response times may vary."
+    )
+
+    crisis_recs = librarian.get_recommendations(
+        "",
+        self_harm_disclosed=True
+    )
+
+    for r in crisis_recs:
+        st.markdown(f"**{r['Description']}**")
+
 # Prediction logic
 if analyze_btn:
-    # Gibberish Filter
-    if not journal_text or journal_text.count(" ") < 2:
-        st.warning("⚠️ Please write a complete sentence (at least 3 words) to get an accurate prediction.")
+    if self_harm_check == "Yes":
+        override_triggered = True
     else:
-        # Get Base Prediction from AI
+        override_triggered = False
+
+    if not journal_text or journal_text.count(" ") < 2:
+        if override_triggered:
+            st.warning(
+                "You can access crisis-support resources below "
+                "without writing a journal entry."
+            )
+        else:
+            st.warning("Please write at least a few words in your journal.")
+
+    if journal_text and journal_text.count(" ") >= 2:        # Get Base Prediction from AI
         with st.spinner("Analyzing..."):
             time.sleep(1)
             prediction, risk_score = doctor.predict(journal_text)
@@ -192,28 +227,33 @@ if analyze_btn:
                 st.info (f"ℹ️ **Score Adjustment:** Risk increased due to: {', '.join (logic_notes)}")
 
         with tab2:
-            st.markdown ("### 📚 Curated Interventions")
-            recs = librarian.get_recommendations(
+            st.markdown ("### 📚 Recommended Support Resources")
+
+            recs = librarian.get_recommendations (
                 journal_text,
                 self_harm_disclosed=override_triggered
             )
 
             if override_triggered:
-                st.warning(
-                    "No verified local crisis contacts are configured in this app yet. "
-                    "If you may act on these thoughts or cannot stay safe, please go "
-                    "to the nearest hospital emergency department. Reach out to someone "
-                    "you trust and ask them to stay with you."
+                st.info (
+                    "Crisis-support contacts are already displayed above. "
+                    "Please use the support information provided there."
                 )
+
             elif not recs:
-                st.info("No specific resources found for this context.")
+                st.info ("No specific resources found for this context.")
+
             else:
                 for r in recs:
-                    color = "red" if r['Type'] == 'Hotline' else "blue"
-                    icon = "☎️" if r['Type'] == 'Hotline' else "📖"
+                    color = "red" if r["Type"] == "Hotline" else "blue"
+                    icon = "☎️" if r["Type"] == "Hotline" else "📖"
+
                     with st.expander (f"{icon} {r['Description']}"):
                         st.markdown (f"**Type:** :{color}[{r['Type']}]")
-                        st.link_button (f"🔗 Open {r['Type']}",r['Link'])
+                        st.link_button (
+                            f"🔗 Open {r['Type']}",
+                            r["Link"]
+                        )
 
         with tab3:
             st.json ({

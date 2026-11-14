@@ -16,14 +16,17 @@ class MentalHealthClassifier:
         self.model.to (self.device)
         self.model.eval ()  # Set to evaluation mode (no training)
 
-        # labels
-        self.labels = ["Normal", "Mental Health Concern"]
+        # Load class labels from the saved model configuration
+        self.labels = [
+            self.model.config.id2label[i]
+            for i in range (self.model.config.num_labels)
+        ]
 
     def predict(self,text):
         """
         Analyzes the text and returns The predicted condition
         """
-        inputs = self.tokenizer (text,return_tensors="pt",truncation=True,max_length=128,padding=True).to (self.device)
+        inputs = self.tokenizer (text,return_tensors="pt",truncation=True,max_length=512,padding=True).to (self.device)
 
         with torch.no_grad ():
             outputs = self.model (**inputs)

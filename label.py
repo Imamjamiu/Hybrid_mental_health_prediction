@@ -25,6 +25,7 @@ try:
     print (f"📊 YOUR MODEL HAS {num_labels} OUTPUTS")
     print ("=" * 40)
 
+
     if num_labels == 2:
         print ("Result: This is a BINARY model (likely 'Normal' vs 'Risk').")
         print ("Use: self.labels = ['Normal', 'Risk']")
